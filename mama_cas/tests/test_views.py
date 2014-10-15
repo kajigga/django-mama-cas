@@ -13,6 +13,7 @@ from .factories import ProxyTicketFactory
 from .factories import ServiceTicketFactory
 from .factories import ConsumedServiceTicketFactory
 from .utils import build_url
+from mama_cas.utils import add_query_params
 from mama_cas.forms import LoginForm
 from mama_cas.models import ProxyTicket
 from mama_cas.models import ServiceTicket
@@ -83,10 +84,10 @@ class LoginViewTests(TestCase):
     def test_login_view_invalid_service(self):
         """
         When called with an invalid service URL, the view should
-        return a 403 Forbidden response.
+        return a 302 Redirect to the InvalidService View.
         """
         response = self.client.get(reverse('cas_login'), {'service': self.service_url, 'gateway': 'true'})
-        self.assertEqual(response.status_code, 403)
+        self.assertRedirects(response, add_query_params(reverse('cas_invalid_service'), {'service': self.service_url}), target_status_code=403)
 
     def test_login_view_login_post(self):
         """
@@ -172,6 +173,24 @@ class LoginViewTests(TestCase):
         self.assertTrue(reverse('cas_warn') in response['Location'])
         self.assertTrue("service=" in response['Location'])
         self.assertTrue('ticket=ST-' in response['Location'])
+
+
+class LoginViewTests403InvalidServiceURL(TestCase):
+    service_url = 'http://invalidservice.com/'
+
+    def setUp(self):
+        self.user = UserFactory()
+
+    @override_settings(MAMA_CAS_VALID_SERVICES=('http://[^\.]+\.example\.org',))
+    def test_login_view_invalid_service_403_template(self):
+        """
+        When called with an invalid service URL, the view should
+        return a 403 Forbidden response with a custom 403 template.
+        """
+        response = self.client.get(reverse('cas_login'), {'service': self.service_url, 'gateway': 'true'}, follow=True)
+        self.assertTrue(response.templates)
+        self.assertTemplateUsed(response, 'mama_cas/invalid_service.html')
+        self.assertEqual(response.status_code, 403)
 
 
 @override_settings(MAMA_CAS_ALLOW_AUTH_WARN=True)

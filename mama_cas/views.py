@@ -8,6 +8,7 @@ from django.utils.translation import ugettext as _
 from django.views.generic import FormView
 from django.views.generic import TemplateView
 from django.views.generic import View
+from django.core.exceptions import PermissionDenied
 
 import defusedxml.ElementTree as etree
 
@@ -357,3 +358,23 @@ class SamlValidateView(NeverCacheMixin, ValidateTicketMixin,
         attributes = self.get_custom_attributes(st.user) if st else None
         return {'ticket': st, 'pgt': pgt, 'error': error,
                 'attributes': attributes}
+
+
+class InvalidServiceView(TemplateView):
+    extra_context = {}
+
+    def get_context_data(self, **kwargs):
+        context = super(InvalidServiceView, self).get_context_data(**kwargs)
+        context.update(self.extra_context)
+        return context
+
+    def get_template_names(self):
+        template_name = getattr(settings, 'MAMA_CAS_INVALID_SERVICE_TEMPLATE', 'mama_cas/invalid_service.html')
+        if not template_name:
+            raise PermissionDenied()
+        return [template_name]
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        context.update(request.GET)
+        return self.render_to_response(context, status=403)

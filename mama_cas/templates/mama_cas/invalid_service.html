@@ -1,0 +1,5 @@
+{% extends "mama_cas/__base.html" %}
+{% load i18n %}
+{% block content %}
+  <p>{{service|safe}} {% trans "is not a valid service " %}.</p>
+{% endblock %}

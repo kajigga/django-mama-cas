@@ -2,7 +2,6 @@ import logging
 import re
 
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
 from django.core import urlresolvers
 from django.http import HttpResponseRedirect
 
@@ -78,7 +77,8 @@ def redirect(to, *args, **kwargs):
         if '/' not in to and '.' not in to:
             to = urlresolvers.reverse('cas_login')
         elif not is_valid_service_url(to):
-            raise PermissionDenied()
+            invalid_service_url = add_query_params(urlresolvers.reverse('cas_invalid_service'), {'service': to})
+            return HttpResponseRedirect(invalid_service_url)
 
     if params:
         to = add_query_params(to, params)
