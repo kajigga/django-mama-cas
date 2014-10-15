@@ -190,6 +190,7 @@ class LoginViewTests403InvalidServiceURL(TestCase):
         response = self.client.get(reverse('cas_login'), {'service': self.service_url, 'gateway': 'true'}, follow=True)
         self.assertTrue(response.templates)
         self.assertTemplateUsed(response, 'mama_cas/invalid_service.html')
+        self.assertEqual(self.service_url,response.context['service'])
         self.assertEqual(response.status_code, 403)
 
 

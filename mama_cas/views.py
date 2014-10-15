@@ -376,5 +376,5 @@ class InvalidServiceView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
-        context.update(request.GET)
+        context['service'] = request.GET.get('service',None)
         return self.render_to_response(context, status=403)
