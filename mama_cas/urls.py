@@ -40,7 +40,7 @@ urlpatterns = patterns('',
     url(r'^samlValidate/?$',
         SamlValidateView.as_view(),
         name='cas_saml_validate'),
-    url(r'^cas_invalid_service',
+    url(r'^invalid_service',
         InvalidServiceView.as_view(),
         name='cas_invalid_service'),
 )
